@@ -63,3 +63,77 @@ const galleryItems = [
     description: 'Lighthouse Coast Sea',
   },
 ];
+
+const galleryList = document.querySelector('.js-gallery');
+const modal = document.querySelector('.js-lightbox');
+const modalImage = document.querySelector('.lightbox__image');
+let activeIndex = null;
+
+function makeGalleryCards(items) {
+  return items.map(({ preview, original, description }) => {
+    return `<li class="gallery__item"><a class="gallery__link"
+    href=${original}><img class="gallery__image" src=${preview}
+      data-source=${original} alt=${description}/></a></li>`;
+  }
+  );
+};
+
+galleryList.insertAdjacentHTML('afterbegin', makeGalleryCards(galleryItems).join(''));
+
+galleryList.addEventListener('click', onModalOpen);
+
+function onModalOpen(event) {
+  event.preventDefault();
+  if (!event.target.classList.contains('gallery__image')) {
+    return;
+  };
+
+  modal.classList.add('is-open');
+  modalImage.src = event.target.dataset.source;
+
+  makeGalleryCards(galleryItems).forEach((element, index) => {
+    if (element.includes(event.target.src)) {
+      activeIndex = index;
+    }
+
+    window.addEventListener('keydown', keyboardManipulation);
+  });
+}
+
+  modal.addEventListener('click', onCloseModal);
+
+  function onCloseModal(event) {
+    if (event.target.nodeName === 'IMG') {
+      return;
+    }
+    modalImage.src = '';
+    modal.classList.remove('is-open');
+
+    window.removeEventListener('keydown', keyboardManipulation);
+  }
+
+  function keyboardManipulation({ code }) {
+    switch (code) {
+      case galleryItems.length - 1 > activeIndex && "ArrowRight":
+        activeIndex += 1;
+        modalImage.src = galleryItems[activeIndex].original;
+        break;
+      case activeIndex > 0 && "ArrowLeft":
+        activeIndex -= 1;
+        modalImage.src = galleryItems[activeIndex].original;
+        break;
+      case activeIndex === galleryItems.length - 1 && "ArrowRight":
+        activeIndex = 0;
+        modalImage.src = galleryItems[activeIndex].original;
+        break;
+      case activeIndex === 0 && "ArrowLeft":
+        activeIndex = galleryItems.length - 1;
+        modalImage.src = galleryItems[activeIndex].original;
+        break;
+      case "Escape":
+        onCloseModal(event);
+        break;
+      default:
+        alert("only to use: ESC to exit and RIGHT (<-) or LEFT (->) arrow buttons to navigation");
+    }
+  }
